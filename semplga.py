@@ -1,12 +1,12 @@
-from .ga import GA
+import ga
 
-ga = GA()
+engine = ga.GA(items_cnt=1)
 # размеры картинок
-objs = [[100,100],
-        [50,90],
-        [120,200],
-        [60,100],
-        [100,120],
-        [120,120]
+objs = [[10,10],
+        [5,9],
+        [12,20],
+        [6,10],
+        [10,12],
+        [12,12]
         ]
-ga.initialisation(objs)
+engine.initialisation(objs)
