@@ -11,8 +11,10 @@ class GA:
 	def _console(self, text:str):
 		print(text)
 	def _out(self, m):
-		for r in m:
-			print(''.join([chr(32+v) for v in r]))
+		j = len(m[0]) - 1
+		while j >= 0:
+			print(''.join([chr(33+v[j]) for v in m]))
+			j -= 1
 		print("\n")
 	
 	def __init__(self, 
@@ -41,14 +43,17 @@ class GA:
 		for idx in range(self.items_cnt):
 			item = [] #сдесь будут координаты всех объектов для текущей особи
 			#карта занятости пространства. размером  самой большой картинки. заполнили значениями 1000
-			map_wieght = [ [1000] * sorted_objects[0][0] ] * sorted_objects[0][1] 
+			map_wieght = [ [1000] * sorted_objects[0][1] ] * sorted_objects[0][0]
 			self._out(map_wieght)
 			i, j = 0, 0
 			#перемешаем случайно координаты кроме 0,0
 			line = []
 			while i < len(map_wieght):
+				j = 0
 				while j < len(map_wieght[0]):
 					line.append((i,j))
+					j += 1
+				i += 1
 			line.pop(0)
 			random.shuffle(line)
 			line.insert(0,(0,0))
@@ -58,8 +63,7 @@ class GA:
 			for obj in sorted_objects: 
 				#добавим координаты
 				obj_1 = [0,0,*obj]
-				max_size = max(*obj) #максимальная сторона
-				obj_1_rate = int(max_size / 2) + 1 #вес объекта
+				obj_1_rate = int(max(*obj) / 2) + 1 #вес объекта
 				#найдём подходящее место (чтобы его вес был больше чем вес объекта)
 				i = 0
 				while True:
@@ -70,33 +74,46 @@ class GA:
 				obj_1[0:2] = line[i] #записали координаты найденые	
 				item.append(obj_1) #добавили объект в список
 				# проверим влазит ли в границы по Х
-				delta = obj_1[0] - obj_1[2]
-				if delta < 0:
-					#на дельту расширим массив  влево
-					map_wieght = [[1000]*delta + r for r in map_wieght]
+				delta = -(obj_1[0] - int((obj_1[2]) / 2))
+				if delta > 0:
+					#на дельту расширим массив  влево (добавить иксов)
+					map_wieght = [[1000]*len(map_wieght[0])]* delta + map_wieght					
 					#увеличим все координаты х объектов
 					for it in item:
 						it[0] += delta
-				if obj_1[0] + obj_1[2] > len(map_wieght):
+				delta = obj_1[0] + int(obj_1[2]/2) - len(map_wieght)
+				if delta > 0:
 					map_wieght = [r + [1000]*delta for r in map_wieght]
 					
 				# проверим влазит ли в границы по Y
-				delta = obj_1[1] - obj_1[3]
-				if delta < 0:
+				delta = -(obj_1[1] - int((obj_1[3]) / 2))
+				if delta > 0:
 					#на дельту расширим массив  вверх
-					map_wieght = [[1000]*len(map_wieght) * delta] + map_wieght
+					map_wieght = [[1000]*delta + r for r in map_wieght]
 					#увеличим все координаты y объектов
 					for it in item:
 						it[1] += delta
-				delta = obj_1[1] + obj_1[3]
-				if delta > len(map_wieght[1]):	
-					map_wieght = map_wieght + [[1000]*len(map_wieght) * delta]
+				delta = obj_1[1] + int(obj_1[3]/2) - len(map_wieght[0])
+				if delta > 0:	
+					map_wieght = map_wieght + [[1000]*len(map_wieght[0]) * delta]
+				
+				self._out(map_wieght)
 				
 				#запишем данные
-				i, j = 0, 0
-				while i < obj_1[2]:
-					while j < obj_1[3]:
-						map_wieght[obj_1[0] - int(obj_1[2]/2 + i)][obj_1[1] - int(obj_1[3]/2 + j)] = 0
+				i = 0
+				while i < len(map_wieght):
+					j = 0
+					while j < len(map_wieght):
+						#определим расстояние от центра до точки
+						r = min( (abs(i - obj_1[0]), abs(j - obj_1[1]) ) )
+						R = max(int(obj_1[2]/2), int(obj_1[3]/2)) #описаный радиус
+						if r < R:
+							map_wieght[i][j] = 0
+						else:
+							map_wieght[i][j] = str(R-r)
+						#map_wieght[obj_1[0] - int(obj_1[2]/2) + i][obj_1[1] - int(obj_1[3]/2) + j] = 0
+						j += 1
+					i += 1
 					
 				self._out(map_wieght)
 					
